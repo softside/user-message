@@ -40,18 +40,17 @@ class MessageCount(template.Node):
 def get_unread_message_count_for(parser, token):
     """
     Returns the unread message count for a user.
-
     Syntax::
-
         {% get_unread_message_count_for [user] as [var_name] %}
-
     Example usage::
-
         {% get_unread_message_count_for pero as message_count %}
-
     """
+    print parser
+    print token.contents
     try:
         tag_name, arg = token.contents.split(None, 1)
+        print tag_name
+        print arg
     except ValueError:
         raise template.TemplateSyntaxError, "%s tag requires arguments" % token.contents.split()[0]
     m = re.search(r'(.*?) as (\w+)', arg)
@@ -64,15 +63,10 @@ def get_unread_message_count_for(parser, token):
 def get_unread_message_count_between(parser, token):
     """
     Returns the unread message count between two users.
-
     Syntax::
-
         {% get_unread_message_count_between [user] and [user] as [var_name] %}
-
     Example usage::
-
         {% get_unread_message_count_between funky and wunki as message_count %}
-
     """
     try:
         tag_name, arg = token.contents.split(None, 1)
