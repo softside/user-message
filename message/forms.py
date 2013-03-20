@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from message.fields import CommaSeparatedUserField
-from message.models import Message, MessageRecipient
+from message.models import Message
 
 import datetime
 
@@ -29,7 +29,8 @@ class ComposeForm(forms.Form):
         body = self.cleaned_data['body']
 
         msg = Message.objects.send_message(sender,
-                                           to_user_list,
+                                           to_user_list[0],
                                            body)
+        msg.update_contacts(to_user_list)
 
         return msg

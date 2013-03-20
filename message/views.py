@@ -8,7 +8,7 @@ from django.utils.translation import ungettext
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.views.generic.list import ListView
 from django.contrib.auth.models import User
-from message.models import Message, MessageRecipient, MessageContact
+from message.models import Message, MessageContact
 from message.forms import ComposeForm
 import datetime
 
@@ -61,8 +61,8 @@ class MessageDetailListView(ListView):
 
     def _update_unread_messages(self, queryset):
         message_pks = [m.pk for m in queryset]
-        unread_list = MessageRecipient.objects.filter(message__in=message_pks,
-                                                  user=self.request.user,
+        unread_list = Message.objects.filter(id__in=message_pks,
+                                                  receiver=self.request.user,
                                                   read_at__isnull=True)
         now = datetime.datetime.now()
         unread_list.update(read_at=now)

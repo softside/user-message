@@ -3,17 +3,11 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from message.models import Message, MessageContact, MessageRecipient
+from message.models import Message, MessageContact
 
-class MessageRecipientInline(admin.TabularInline):
-    """ Inline message recipients """
-    model = MessageRecipient
 
 class MessageAdmin(admin.ModelAdmin):
     """ Admin message class with inline recipients """
-    inlines = [
-        MessageRecipientInline,
-    ]
 
     fieldsets = (
         (None, {

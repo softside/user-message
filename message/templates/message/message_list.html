@@ -1,14 +1,17 @@
 {% extends 'base.html' %}
-{% load i18n message_tags %}
+{% load i18n message_tags  %}
 {% load url from future %}
 
 
 {% block content %}
+
 {% get_unread_message_count_for user as unread_message_count %}
 {% blocktrans %}{{ unread_message_count }} new messages.{% endblocktrans %}
+
 <a href="{% url 'userena_umessages_compose' %}">{% trans "Compose" %}</a>
 <ul>
   {% for message in message %}
+
   <li>
   {% if message.from_user == user %}
   <a href="{% url 'userena_umessages_detail' message.to_user.username %}">{{ message.to_user }}</a>

@@ -2,18 +2,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import truncate_words
 from django.contrib.auth.models import User
-from message.managers import (MessageManager, MessageContactManager,
-                                                MessageRecipientManager)
-
+from message.managers import (MessageManager, MessageContactManager)
 
 class MessageContact(models.Model):
-    """
-    Contact model.
-
-    A contact is a user to whom a user has send a message to or
-    received a message from.
-
-    """
     from_user = models.ForeignKey(User, verbose_name=_("from user"),
                                   related_name=('from_users'))
 
@@ -37,71 +28,29 @@ class MessageContact(models.Model):
                    'to_user': self.to_user.username})
 
     def opposite_user(self, user):
-        """
-        Returns the user opposite of the user that is given
-
-        :param user:
-            A Django :class:`User`.
-
-        :return:
-            A Django :class:`User`.
-
-        """
         if self.from_user == user:
             return self.to_user
         else: return self.from_user
 
-class MessageRecipient(models.Model):
-    """
-    Intermediate model to allow per recipient marking as
-    deleted, read etc. of a message.
-
-    """
-    user = models.ForeignKey(User,
-                             verbose_name=_("recipient"))
-
-    message = models.ForeignKey('Message',
-                                verbose_name=_("message"))
-
-    read_at = models.DateTimeField(_("read at"),
-                                   null=True,
-                                   blank=True)
-
-    deleted_at = models.DateTimeField(_("recipient deleted at"),
-                                      null=True,
-                                      blank=True)
-
-    objects = MessageRecipientManager()
-
-    class Meta:
-        verbose_name = _("recipient")
-        verbose_name_plural = _("recipients")
-
-    def __unicode__(self):
-        return (_("%(message)s")
-                % {'message': self.message})
-
-    def is_read(self):
-        """ Returns a boolean whether the recipient has read the message """
-        return self.read_at is None
 
 class Message(models.Model):
     """ Private message model, from user to user(s) """
     body = models.TextField(_("body"))
 
     sender = models.ForeignKey(User,
-                               related_name='sent_messages',
-                               verbose_name=_("sender"))
-
-    recipients = models.ManyToManyField(User,
-                                        through='MessageRecipient',
-                                        related_name="received_messages",
-                                        verbose_name=_("recipients"))
+                               related_name='sent_messages')
+    receiver = models.ForeignKey(User,
+                               related_name='receive_messages')
 
     sent_at = models.DateTimeField(_("sent at"),
                                    auto_now_add=True)
+    read_at = models.DateTimeField(_("read at"),
+                                   null=True,blank=True)
 
     sender_deleted_at = models.DateTimeField(_("sender deleted at"),
+                                             null=True,
+                                             blank=True)
+    receiver_deleted_at = models.DateTimeField(_("sender deleted at"),
                                              null=True,
                                              blank=True)
 
@@ -117,23 +66,6 @@ class Message(models.Model):
         truncated_body = truncate_words(self.body, 10)
         return "%(truncated_body)s" % {'truncated_body': truncated_body}
 
-    def save_recipients(self, to_user_list):
-        """
-        Save the recipients for this message
-
-        :param to_user_list:
-            A list which elements are :class:`User` to whom the message is for.
-
-        :return:
-            Boolean indicating if any users are saved.
-
-        """
-        created = False
-        for user in to_user_list:
-            MessageRecipient.objects.create(user=user,
-                                            message=self)
-            created = True
-        return created
 
     def update_contacts(self, to_user_list):
         """
