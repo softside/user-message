@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+
+{% block content %}
+<style type="text/css" media="screen">
+  .message_list li{
+  width: 495px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #e8e0cc;
+  line-height: 22px;
+  list-style:none;
+  margin:10px 0;
+  }
+</style>
+<form action="/message/compose/" method="post" id="compose_message_form">
+  {% csrf_token %}
+  <fieldset>
+    <p>
+      <input type="hidden" name="to" value="{{recipient}}" >
+      <label for="id_body">Message:</label>
+      <textarea id="id_body" rows="10" cols="40" name="body" class="message"></textarea>
+    </p>
+  </fieldset>
+  <input type="submit" name="send" value="{% trans "Send" %}" />
+</form>
+
+<ul class="message_list">
+  {% for message in message %}
+  <li>
+    {{message.sender}}:{{ message }}
+    {% ifequal message.sender request.user %}
+    <p> {{ message.sent_at|date:"m月d日  H:i" }}</p>
+    {% else %}
+    <p>  {{ message.sent_at|date:"m月d日  H:i" }}</p>
+    {% endifequal %}
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
