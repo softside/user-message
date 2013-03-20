@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import truncate_words
 from django.contrib.auth.models import User
-from messages.managers import (MessageManager, MessageContactManager,
+from message.managers import (MessageManager, MessageContactManager,
                                                 MessageRecipientManager)
 
 

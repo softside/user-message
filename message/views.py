@@ -7,10 +7,10 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.views.generic.list import ListView
-
-from messages.models import Message, MessageRecipient, MessageContact
-from messages.forms import ComposeForm
-
+from django.contrib.auth.models import User
+from message.models import Message, MessageRecipient, MessageContact
+from message.forms import ComposeForm
+import datetime
 
 class MessageListView(ListView):
     """
@@ -22,11 +22,12 @@ class MessageListView(ListView):
     """
     page=1
     paginate_by=50
-    template_name='umessages/message_list.html'
+    template_name='message/message_list.html'
     extra_context=None
     context_object_name = 'message'
 
     def get_queryset(self):
+
         return MessageContact.objects.get_contacts_for(self.request.user)
 
 
@@ -38,18 +39,20 @@ class MessageDetailListView(ListView):
     """
     page=1
     paginate_by=50
-    template_name='umessages/message_detail.html'
+    template_name='message/message_detail.html'
     extra_context=None
     context_object_name = 'message'
 
     def get_context_data(self, **kwargs):
         context = super(MessageDetailListView, self).get_context_data(**kwargs)
         context['recipient'] = self.recipient
+        context['form'] = ComposeForm()
+        context['request'] = self.request
         return context
 
     def get_queryset(self):
         username = self.kwargs['username']
-        self.recipient = get_object_or_404(get_user_model(),
+        self.recipient = get_object_or_404(User,
                                   username__iexact=username)
         queryset = Message.objects.get_conversation_between(self.request.user,
                                                         self.recipient)
@@ -61,13 +64,13 @@ class MessageDetailListView(ListView):
         unread_list = MessageRecipient.objects.filter(message__in=message_pks,
                                                   user=self.request.user,
                                                   read_at__isnull=True)
-        now = get_datetime_now()
+        now = datetime.datetime.now()
         unread_list.update(read_at=now)
 
 
 @login_required
 def message_compose(request, recipients=None, compose_form=ComposeForm,
-                    success_url=None, template_name="umessages/message_form.html",
+                    success_url=None, template_name="message/message_form.html",
                     recipient_filter=None, extra_context=None):
     """
     Compose a new message
@@ -116,9 +119,7 @@ def message_compose(request, recipients=None, compose_form=ComposeForm,
 
             message = form.save(request.user)
             recipients = form.cleaned_data['to']
-
-            if userena_settings.USERENA_USE_MESSAGES:
-                messages.success(request, _('Message is sent.'),
+            messages.success(request, _('Message is sent.'),
                                  fail_silently=True)
 
             requested_redirect = request.REQUEST.get(REDIRECT_FIELD_NAME,
@@ -172,7 +173,7 @@ def message_remove(request, undo=False):
                 valid_message_pk_list.add(valid_pk)
 
         # Delete all the messages, if they belong to the user.
-        now = get_datetime_now()
+        now = datetime.datetime.now()
         changed_message_list = set()
         for pk in valid_message_pk_list:
             message = get_object_or_404(Message, pk=pk)

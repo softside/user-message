@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from userena.contrib.umessages import views as messages_views
+from message import views as messages_views
 from django.contrib.auth.decorators import login_required
 
 urlpatterns = patterns('',
